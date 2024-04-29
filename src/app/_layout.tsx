@@ -1,24 +1,29 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { useFonts } from 'expo-font';
+import {
+  Roboto_400Regular,
+  Roboto_500Medium,
+  Roboto_700Bold,
+  useFonts,
+} from '@expo-google-fonts/roboto';
 import { Slot } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function Layout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require('@/assets/fonts/SpaceMono-Regular.ttf'),
-    ...FontAwesome.font,
+  const [fontsLoaded] = useFonts({
+    Roboto_400Regular,
+    Roboto_500Medium,
+    Roboto_700Bold,
   });
 
-  if (loaded) {
+  if (fontsLoaded) {
     SplashScreen.hideAsync();
   }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar barStyle='light-content' />
-      {loaded && <Slot />}
+      <StatusBar barStyle='dark-content' />
+      {fontsLoaded && <Slot />}
     </GestureHandlerRootView>
   );
 }
