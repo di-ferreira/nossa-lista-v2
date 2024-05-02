@@ -1,17 +1,33 @@
+import Button from '@/components/Button';
 import Header from '@/components/Header';
-import { Link } from 'expo-router';
+import InputCustom from '@/components/InputCustom';
+import { List } from '@/components/List';
+import ShoppingLists from '@/components/ShoppingLists';
+import { theme } from '@/theme';
+import { ShoppingList } from '@/utils/List';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 const Home: React.FC = () => {
   return (
-    <>
+    <View style={{ flex: 1 }}>
       <Header />
-      <View>
-        <Text>Home</Text>
-        <Link href={'/List/'}>ir para lista</Link>
-      </View>
-    </>
+      <List data={ShoppingList} ItemListComp={ShoppingLists} />
+      <InputCustom />
+      <Button
+        label='NOVA LISTA'
+        backgroundColor={theme.colors.blue}
+        labelColor={theme.colors.light}
+        icon={
+          <MaterialCommunityIcons
+            name={'file-check'}
+            size={30}
+            color={theme.colors.light}
+          />
+        }
+      />
+    </View>
   );
 };
 

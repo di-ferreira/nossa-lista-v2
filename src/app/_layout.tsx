@@ -1,9 +1,16 @@
 import {
+  Lemonada_300Light,
+  Lemonada_400Regular,
+  Lemonada_500Medium,
+  Lemonada_600SemiBold,
+  Lemonada_700Bold,
+} from '@expo-google-fonts/lemonada';
+import {
   Roboto_400Regular,
   Roboto_500Medium,
   Roboto_700Bold,
-  useFonts,
 } from '@expo-google-fonts/roboto';
+import { useFonts } from 'expo-font';
 import { Slot } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'react-native';
@@ -14,6 +21,11 @@ export default function Layout() {
     Roboto_400Regular,
     Roboto_500Medium,
     Roboto_700Bold,
+    Lemonada_300Light,
+    Lemonada_400Regular,
+    Lemonada_500Medium,
+    Lemonada_600SemiBold,
+    Lemonada_700Bold,
   });
 
   if (fontsLoaded) {

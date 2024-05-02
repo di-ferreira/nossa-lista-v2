@@ -2,16 +2,13 @@ import { theme } from '@/theme';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import { ListItemProps } from './listItem';
 
-const ListItem: React.FC<ListItemProps> = ({
-  id,
-  name,
-  price,
-  purchased,
-  quantity,
-  unit,
-}) => {
+interface props {
+  item: ListItemProps;
+}
+
+const ListItem: React.FC<props> = ({ item }) => {
+  const { id, name, price, purchased, quantity, unit } = item;
   return (
     <View>
       <View />

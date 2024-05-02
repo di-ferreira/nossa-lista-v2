@@ -1,4 +1,4 @@
-export enum UnitMeasure {
+enum UnitMeasure {
   UNIT = 'uni',
   LITRER = 'l',
   KILO = 'kg',
@@ -9,7 +9,8 @@ type ListItemProps = {
   name: string;
   price: number;
   quantity: number;
-  unit: UnitMeasure;
+  unit: 'uni' | 'l' | 'kg';
   purchased: boolean;
+  total: number;
 };
 
