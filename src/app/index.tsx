@@ -3,17 +3,27 @@ import Header from '@/components/Header';
 import InputCustom from '@/components/InputCustom';
 import { List } from '@/components/List';
 import ShoppingLists from '@/components/ShoppingLists';
+import useShoppingList from '@/hooks/useShoppingList';
+import { mmkvStorage } from '@/services/mmkvService';
+import { initializeStorageService } from '@/services/storageServices';
 import { theme } from '@/theme';
-import { ShoppingList } from '@/utils/List';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
 const Home: React.FC = () => {
+  const { getShoppingLists } = useShoppingList();
+  const [shoppingList, setShoppingList] = useState<ShoppingListsProps[]>([]);
+
+  useEffect(() => {
+    initializeStorageService(mmkvStorage);
+    // setShoppingList(getShoppingLists);
+  }, []);
+
   return (
     <View style={{ flex: 1 }}>
       <Header />
-      <List data={ShoppingList} ItemListComp={ShoppingLists} />
+      <List data={shoppingList} ItemListComp={ShoppingLists} />
       <InputCustom />
       <Button
         label='NOVA LISTA'
