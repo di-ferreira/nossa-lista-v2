@@ -2,24 +2,21 @@ import Icon from '@/components/Icon';
 import { theme } from '@/theme';
 import { currencyFormat } from '@/utils/format';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { styles } from './styles';
 interface props {
   item: ShoppingListsProps;
+  handleListDelete: (id: number) => void;
+  handleListEdit: (id: number) => void;
 }
 
-const ShoppingLists: React.FC<props> = ({ item }) => {
+const ShoppingLists: React.FC<props> = ({
+  item,
+  handleListDelete,
+  handleListEdit,
+}) => {
   const { id, name, total } = item;
-
-  const handleListDelete = (idList: number) => {
-    console.log(idList);
-  };
-
-  const handleListEdit = (idList: number) => {
-    router.navigate({ params: { idList }, pathname: '/List/[idList]' });
-  };
 
   return (
     <View style={styles.container}>

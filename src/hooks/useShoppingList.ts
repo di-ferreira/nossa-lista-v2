@@ -1,17 +1,16 @@
 import { storageService } from '@/services/storageServices';
+import { SHOPPING_LIST_KEY } from '@/utils/consts';
 import { create } from 'zustand';
 
-const SHOPPING_LIST_KEY = '@ShoppingListKey';
-
 interface iShoppingListContext {
-  getShoppingLists: ShoppingListsProps[];
+  getShoppingLists: () => ShoppingListsProps[];
   ShoppingListError: string;
   saveShopping: (shopping: ShoppingListsProps) => void;
   updateShopping: (shopping: ShoppingListsProps) => ShoppingListsProps | void;
   deleteShopping: (shoppingId: number) => void;
 }
 
-const getShoppingLists = () => {
+const getShoppingLists = (): ShoppingListsProps[] => {
   let shoppingLists: ShoppingListsProps[] = [];
 
   if (storageService) {
@@ -21,7 +20,7 @@ const getShoppingLists = () => {
         shoppingLists = list;
       });
   }
-
+  console.warn('lista', shoppingLists);
   return shoppingLists;
 };
 
@@ -35,7 +34,7 @@ const isValid = (name: string) => {
     }
   });
 
-  return validName;
+  return name.trim() !== '' ? validName : !validName;
 };
 
 const createNewList = (shopping: ShoppingListsProps): { isError: string } => {
@@ -44,6 +43,7 @@ const createNewList = (shopping: ShoppingListsProps): { isError: string } => {
   if (isValid(shopping.name)) {
     //- gera um novo ID
     let lists: ShoppingListsProps[] = getShoppingLists();
+    console.warn('Listas->', lists);
 
     let id = lists.length + 1;
 
@@ -59,7 +59,16 @@ const createNewList = (shopping: ShoppingListsProps): { isError: string } => {
 
     lists.push(shopping);
 
-    storageService.setItem(SHOPPING_LIST_KEY, JSON.stringify(lists));
+    storageService
+      .setItem(SHOPPING_LIST_KEY, lists)
+      .then(() => {
+        storageService.getItem(SHOPPING_LIST_KEY).then((list) => {
+          console.warn('Lista criada com sucesso', list);
+        });
+      })
+      .catch((err) => {
+        isError = 'Erro ao criar lista ' + err;
+      });
   } else if (shopping.name && !isValid(shopping.name)) {
     isError = 'Já existe uma lista com esse nome.';
   } else {
@@ -72,37 +81,44 @@ const createNewList = (shopping: ShoppingListsProps): { isError: string } => {
 const deleteList = (shoppingId: number) => {
   const shoppingLists = getShoppingLists();
   const newList = shoppingLists.filter((item) => item.id !== shoppingId);
-  storageService.setItem(SHOPPING_LIST_KEY, JSON.stringify(newList));
+  storageService
+    .setItem(SHOPPING_LIST_KEY, JSON.stringify(newList))
+    .then(() => {
+      console.log('Lista deletada com sucesso');
+    })
+    .catch((err) => {
+      console.log('Erro ao deletar lista' + err);
+    });
 };
 
 const updateShopping = (shopping: ShoppingListsProps) => {
   const shoppingLists = getShoppingLists();
   const newList = shoppingLists.filter((item) => item.id !== shopping.id);
   newList.push(shopping);
-  storageService.setItem(SHOPPING_LIST_KEY, JSON.stringify(newList));
+  storageService
+    .setItem(SHOPPING_LIST_KEY, JSON.stringify(newList))
+    .then(() => {
+      console.log('Lista atualizada com sucesso');
+    })
+    .catch((err) => {
+      console.log('Erro ao atualizar lista' + err);
+    });
 };
 
 const useShoppingList = create<iShoppingListContext>((set) => ({
-  getShoppingLists: getShoppingLists(),
+  getShoppingLists: () => getShoppingLists(),
   ShoppingListError: '',
   saveShopping: (shopping) => {
     const { isError } = createNewList(shopping);
     set(() => ({
       ShoppingListError: isError,
-      getShoppingLists: getShoppingLists(),
     }));
   },
   updateShopping: (shopping) => {
     updateShopping(shopping);
-    set(() => ({
-      getShoppingLists: getShoppingLists(),
-    }));
   },
   deleteShopping: (shoppingId) => {
     deleteList(shoppingId);
-    set(() => ({
-      getShoppingLists: getShoppingLists(),
-    }));
   },
 }));
 
