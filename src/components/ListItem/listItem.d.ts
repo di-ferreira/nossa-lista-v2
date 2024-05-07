@@ -1,15 +1,21 @@
-enum UnitMeasure {
-  UNIT = 'uni',
-  LITRER = 'l',
-  KILO = 'kg',
-}
+type UnitMeasure = {
+  UNIT: 'uni';
+  LITRER: 'l';
+  KILO: 'kg';
+};
 
-type ListItemProps = {
+export const UnitMeasure: UnitMeasure = {
+  UNIT: 'uni',
+  LITRER: 'l',
+  KILO: 'kg',
+};
+
+export type ListItemProps = {
   id: string;
   name: string;
   price: number;
   quantity: number;
-  unit: 'uni' | 'l' | 'kg';
+  unit: UnitMeansure;
   purchased: boolean;
   total: number;
 };

@@ -1,15 +1,10 @@
-import Button from '@/components/Button';
-import Header from '@/components/Header';
-import InputCustom from '@/components/InputCustom';
-import { List } from '@/components/List';
-import ShoppingLists from '@/components/ShoppingLists';
-import { theme } from '@/theme';
+// import { List } from '@/components/List';
 import { SHOPPING_LIST_KEY } from '@/utils/consts';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, View } from 'react-native';
+import { Alert } from 'react-native';
+import List from './List/[id]';
 
 const Home: React.FC = () => {
   const [shoppingList, setShoppingList] = useState<ShoppingListsProps[]>([]);
@@ -112,40 +107,41 @@ const Home: React.FC = () => {
   }, []);
 
   return (
-    <View style={{ flex: 1 }}>
-      <Header />
-      <List
-        data={shoppingList}
-        ItemListComp={ShoppingLists}
-        deleteList={handleListDelete}
-        editList={handleListEdit}
-      />
-      <InputCustom
-        placeholder='Nome da lista'
-        onChange={(text) => {
-          setShopping({ ...shopping, name: text });
-        }}
-        textValue={shopping.name}
-      />
+    <List />
+    // <View style={{ flex: 1 }}>
+    //   <Header />
+    //   <List
+    //     data={shoppingList}
+    //     ItemListComp={ShoppingLists}
+    //     deleteList={handleListDelete}
+    //     editList={handleListEdit}
+    //   />
+    //   <InputCustom
+    //     placeholder='Nome da lista'
+    //     onChange={(text) => {
+    //       setShopping({ ...shopping, name: text });
+    //     }}
+    //     textValue={shopping.name}
+    //   />
 
-      <Button
-        label='NOVA LISTA'
-        backgroundColor={theme.colors.blue}
-        labelColor={theme.colors.light}
-        onPress={createNewList}
-        icon={
-          loading ? (
-            <ActivityIndicator color={theme.colors.light} />
-          ) : (
-            <MaterialCommunityIcons
-              name={'file-check'}
-              size={30}
-              color={theme.colors.light}
-            />
-          )
-        }
-      />
-    </View>
+    //   <Button
+    //     label='NOVA LISTA'
+    //     backgroundColor={theme.colors.blue}
+    //     labelColor={theme.colors.light}
+    //     onPress={createNewList}
+    //     icon={
+    //       loading ? (
+    //         <ActivityIndicator color={theme.colors.light} />
+    //       ) : (
+    //         <MaterialCommunityIcons
+    //           name={'file-check'}
+    //           size={30}
+    //           color={theme.colors.light}
+    //         />
+    //       )
+    //     }
+    //   />
+    // </View>
   );
 };
 
