@@ -26,5 +26,15 @@ export const styles = StyleSheet.create({
     fontSize: theme.fontSize.md,
     color: theme.colors.dark,
   },
+  containerAddItem: {
+    width: '100%',
+    height: theme.spacing.lg,
+    flexDirection: 'row',
+    marginTop: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.md,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  containerItem: {},
 });
 

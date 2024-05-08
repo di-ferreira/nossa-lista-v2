@@ -11,7 +11,7 @@ export const UnitMeasure: UnitMeasure = {
 };
 
 export type ListItemProps = {
-  id: string;
+  id: number;
   name: string;
   price: number;
   quantity: number;

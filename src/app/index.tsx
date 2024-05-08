@@ -142,6 +142,9 @@ const Home: React.FC = () => {
     //     }
     //   />
     // </View>
+
+    // borderBottomColor: theme.colors.dark,
+    // borderBottomWidth: 3,
   );
 };
 

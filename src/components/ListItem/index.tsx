@@ -18,6 +18,7 @@ const ListItem: React.FC<props> = ({
   handleListEdit,
 }) => {
   const { id, name, price, purchased, quantity, unit } = item;
+
   return (
     <View style={styles.container}>
       <View style={[styles.stroke, purchased && { display: 'none' }]} />
@@ -38,7 +39,7 @@ const ListItem: React.FC<props> = ({
       <View style={[styles.column, { width: '25%' }]}>
         <TouchableOpacity
           style={[styles.buttons, { backgroundColor: theme.colors.warn.main }]}
-          onPress={() => {}}
+          onPress={() => handleListEdit(id)}
         >
           <MaterialIcons
             name='edit'
@@ -52,7 +53,7 @@ const ListItem: React.FC<props> = ({
             styles.buttons,
             { backgroundColor: theme.colors.danger.main },
           ]}
-          onPress={() => {}}
+          onPress={() => handleListDelete(id)}
         >
           <MaterialCommunityIcons
             name='trash-can'
