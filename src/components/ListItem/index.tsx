@@ -3,8 +3,8 @@ import { currencyFormat } from '@/utils/format';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import { ListItemProps } from './listItem';
 import { styles } from './styles';
+import { ListItemProps } from './types';
 
 interface props {
   item: ListItemProps;

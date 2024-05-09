@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, TextInput, View } from 'react-native';
+import { KeyboardTypeOptions, Text, TextInput, View } from 'react-native';
 
 import { styles } from './styles';
 
@@ -7,6 +7,7 @@ interface InputCustomProps {
   label?: string;
   placeholder?: string;
   textValue?: string;
+  inputType?: KeyboardTypeOptions;
   onChange?: (text: string) => void;
 }
 
@@ -15,6 +16,7 @@ const InputCustom: React.FC<InputCustomProps> = ({
   placeholder,
   textValue,
   onChange,
+  inputType,
 }) => {
   return (
     <View style={styles.container}>
@@ -23,6 +25,7 @@ const InputCustom: React.FC<InputCustomProps> = ({
         value={textValue}
         placeholder={placeholder}
         onChangeText={onChange}
+        keyboardType={inputType ? inputType : 'default'}
       />
     </View>
   );

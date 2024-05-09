@@ -4,7 +4,11 @@ import Header from '@/components/Header';
 import InputCustom from '@/components/InputCustom';
 import { List as ListContainer } from '@/components/List';
 import ListItem from '@/components/ListItem';
-import { ListItemProps } from '@/components/ListItem/listItem';
+import {
+  ListItemProps,
+  tUnitMeansure,
+  UnitMeansure,
+} from '@/components/ListItem/types';
 import { theme } from '@/theme';
 import { SHOPPING_LIST_KEY } from '@/utils/consts';
 import { currencyFormat } from '@/utils/format';
@@ -12,13 +16,33 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import BottomSheet from '@gorhom/bottom-sheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams } from 'expo-router';
-import { DropdownData } from 'expo-select-dropdown';
 import React, { useEffect, useRef, useState } from 'react';
-import { SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { Dropdown } from 'react-native-element-dropdown';
 import { styles } from './styles';
 
+interface iDropdown {
+  label: keyof tUnitMeansure;
+  value: tUnitMeansure;
+}
 const List: React.FC = () => {
   const { id } = useLocalSearchParams();
+  const ItemListInitial = {
+    id: 0,
+    name: '',
+    price: 0,
+    purchased: false,
+    quantity: 0,
+    total: 0,
+    unit: UnitMeansure[2].value,
+  };
+
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [ShoppingList, setShoppingList] = useState<ShoppingListsProps>({
     id: 0,
@@ -27,11 +51,13 @@ const List: React.FC = () => {
     total: 0,
   });
 
-  const [ItemList, setItemList] = useState<ListItemProps>();
-  const [selected, setSelected] = useState<DropdownData<string, string> | null>(
-    null
+  const [dropdownValue, setDropdownValue] = useState<iDropdown>(
+    UnitMeansure[2]
   );
-  const [dataDropdown, _] = useState<DropdownData<string, string>[]>([]);
+  const [isLoading, setisLoading] = useState<boolean>(false);
+  const [isFocusDropdown, setIsFocusDropdown] = useState<boolean>(false);
+
+  const [ItemList, setItemList] = useState<ListItemProps>(ItemListInitial);
 
   const handleLists = () => {
     AsyncStorage.getItem(SHOPPING_LIST_KEY).then((data) => {
@@ -49,10 +75,12 @@ const List: React.FC = () => {
   const AddItem = () => {};
 
   const OpenModalItem = () => {
+    setItemList(ItemListInitial);
     bottomSheetRef.current?.expand();
   };
 
   const CloseModalItem = () => {
+    setItemList(ItemListInitial);
     bottomSheetRef.current?.close();
   };
 
@@ -141,6 +169,125 @@ const List: React.FC = () => {
             labelColor={theme.colors.light}
             onPress={() => {}}
             icon={
+              isLoading ? (
+                <ActivityIndicator color={theme.colors.light} />
+              ) : (
+                <MaterialCommunityIcons
+                  name={'send'}
+                  size={30}
+                  color={theme.colors.light}
+                />
+              )
+            }
+          />
+        </View>
+      </View>
+
+      <AddItemComp ref={bottomSheetRef} onClose={CloseModalItem}>
+        <View style={{ flex: 1, gap: 10, paddingHorizontal: 15 }}>
+          <View style={styles.containerItem}>
+            <View style={styles.containerInput}>
+              <View style={styles.labelInput}>
+                <Text style={styles.labelText}>Nome do Item</Text>
+              </View>
+              <InputCustom
+                placeholder='Nome do Item'
+                textValue={ItemList.name}
+                onChange={(e) => {
+                  setItemList(
+                    (old) => (old = { ...ItemList, name: String(e) })
+                  );
+                }}
+              />
+            </View>
+            <View style={styles.containerInput}>
+              <View style={styles.labelInput}>
+                <Text style={styles.labelText}>Quantidade do Item</Text>
+              </View>
+              <InputCustom
+                placeholder='Quantidade do Item'
+                inputType='numeric'
+                textValue={String(ItemList.quantity)}
+                onChange={(e) => {
+                  setItemList(
+                    (old) => (old = { ...ItemList, quantity: Number(e) })
+                  );
+                }}
+              />
+            </View>
+          </View>
+          <View style={styles.containerItem}>
+            <View style={styles.containerInput}>
+              <View style={styles.labelInput}>
+                <Text style={styles.labelText}>Preço do Item</Text>
+              </View>
+              <InputCustom
+                placeholder='Preço do Item'
+                inputType='decimal-pad'
+                textValue={String(ItemList.price)}
+                onChange={(e) => {
+                  setItemList(
+                    (old) => (old = { ...ItemList, quantity: Number(e) })
+                  );
+                }}
+              />
+            </View>
+
+            <View style={styles.containerInput}>
+              <View style={styles.labelInput}>
+                <Text style={styles.labelText}>Preço do Item</Text>
+              </View>
+              <Dropdown
+                style={[
+                  styles.dropdown,
+                  isFocusDropdown && { borderColor: theme.colors.gray[700] },
+                ]}
+                placeholderStyle={[
+                  styles.placeholderStyle,
+                  !isFocusDropdown
+                    ? { color: theme.colors.light }
+                    : { color: theme.colors.gray[700] },
+                ]}
+                selectedTextStyle={styles.selectedTextStyle}
+                inputSearchStyle={styles.inputSearchStyle}
+                iconStyle={styles.iconStyle}
+                data={UnitMeansure}
+                maxHeight={300}
+                labelField='label'
+                valueField='value'
+                placeholder={
+                  !isFocusDropdown ? String(dropdownValue.value) : '...'
+                }
+                value={dropdownValue}
+                onFocus={() => setIsFocusDropdown(true)}
+                onBlur={() => setIsFocusDropdown(false)}
+                onChange={(item) => {
+                  setDropdownValue(item);
+                  setIsFocusDropdown(false);
+                }}
+                renderLeftIcon={() => (
+                  <MaterialCommunityIcons
+                    style={styles.icon}
+                    color={
+                      isFocusDropdown
+                        ? theme.colors.gray[700]
+                        : theme.colors.light
+                    }
+                    name='chevron-down'
+                    size={20}
+                  />
+                )}
+              />
+            </View>
+          </View>
+          <Button
+            label='ADICIONAR ITEM'
+            backgroundColor={theme.colors.dark}
+            labelColor={theme.colors.light}
+            borderRadius={5}
+            width={'103%'}
+            onPress={AddItem}
+            icon={
               // loading ? (
               //   <ActivityIndicator color={theme.colors.light} />
               // ) : (
@@ -152,20 +299,6 @@ const List: React.FC = () => {
               // )
             }
           />
-        </View>
-      </View>
-      <AddItemComp ref={bottomSheetRef} onClose={CloseModalItem}>
-        <View>
-          <InputCustom />
-          {/* <SelectDropdown
-            data={dataDropdown}
-            placeholder={'Select option'}
-            selected={selected}
-            setSelected={setSelected}
-            searchOptions={{ cursorColor: '#007bff' }}
-            searchBoxStyles={{ borderColor: '#007bff' }}
-            dropdownStyles={{ borderColor: '#007bff' }}
-          /> */}
         </View>
       </AddItemComp>
     </>

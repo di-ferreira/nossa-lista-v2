@@ -35,6 +35,50 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
   },
-  containerItem: {},
+  containerItem: {
+    flexDirection: 'row',
+    width: '100%',
+    height: 55,
+    gap: 15,
+    paddingVertical: 15,
+  },
+  containerInput: {
+    height: 40,
+    borderWidth: 0.5,
+    borderColor: theme.colors.light,
+    borderRadius: 8,
+    width: '50%',
+    position: 'relative',
+  },
+  labelInput: {
+    position: 'absolute',
+    top: -22,
+  },
+  labelText: {
+    fontFamily: theme.fontFamily.lemonada.semibold,
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.light,
+  },
+  dropdown: {
+    width: '100%',
+    height: 40,
+  },
+  icon: {
+    marginRight: 5,
+  },
+  placeholderStyle: {
+    fontSize: 16,
+  },
+  selectedTextStyle: {
+    fontSize: 16,
+  },
+  iconStyle: {
+    width: 20,
+    height: 20,
+  },
+  inputSearchStyle: {
+    height: 40,
+    fontSize: 16,
+  },
 });
 

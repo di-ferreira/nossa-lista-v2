@@ -16,7 +16,7 @@ const AddItemComp = forwardRef<BottomSheet, iAddItemComp>(
       <BottomSheet
         ref={ref}
         index={0}
-        snapPoints={[0.01, 500]}
+        snapPoints={[0.01, 250]}
         backgroundStyle={styles.container}
         handleComponent={() => null}
       >

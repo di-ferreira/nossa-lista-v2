@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { DimensionValue, Text, TouchableOpacity, View } from 'react-native';
 
 import { styles } from './styles';
 interface ButtonProps {
@@ -7,6 +7,8 @@ interface ButtonProps {
   icon?: React.ReactNode;
   labelColor?: string;
   backgroundColor?: string;
+  borderRadius?: number;
+  width?: DimensionValue;
   onPress?: () => void;
 }
 const Button: React.FC<ButtonProps> = ({
@@ -14,10 +16,21 @@ const Button: React.FC<ButtonProps> = ({
   icon,
   labelColor,
   backgroundColor,
+  borderRadius,
+  width,
   onPress,
 }) => {
   return (
-    <View style={[styles.container, { backgroundColor }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor,
+          borderRadius: borderRadius ? borderRadius : 0,
+          width: width && width,
+        },
+      ]}
+    >
       <TouchableOpacity style={styles.button} onPress={onPress}>
         <Text style={[styles.buttonText, { color: labelColor }]}>
           {label && label}
