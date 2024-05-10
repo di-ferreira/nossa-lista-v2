@@ -4,15 +4,15 @@ export type tUnitMeansure = {
   KILO: 'kg';
 };
 
-enum eUnitMeansure {
+export enum eUnitMeansure {
   UNIDADE = 'uni',
   LITRO = 'l',
   KILO = 'kg',
 }
 
 export const UnitMeansure: {
-  label: keyof tUnitMeansure;
-  value: tUnitMeansure;
+  label: keyof eUnitMeansure;
+  value: eUnitMeansure;
 }[] = Object.assign(
   [],
   Object.keys(eUnitMeansure).map((key) => ({
@@ -26,7 +26,7 @@ export type ListItemProps = {
   name: string;
   price: number;
   quantity: number;
-  unit: tUnitMeansure;
+  unit: eUnitMeansure;
   purchased: boolean;
   total: number;
 };

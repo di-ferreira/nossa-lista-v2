@@ -10,19 +10,24 @@ interface props {
   item: ListItemProps;
   handleListDelete: (id: number) => void;
   handleListEdit: (id: number) => void;
+  handlePurchasedItem?: (id: number) => void;
 }
 
 const ListItem: React.FC<props> = ({
   item,
   handleListDelete,
   handleListEdit,
+  handlePurchasedItem,
 }) => {
   const { id, name, price, purchased, quantity, unit } = item;
 
   return (
     <View style={styles.container}>
-      <View style={[styles.stroke, purchased && { display: 'none' }]} />
-      <View style={[styles.column, { width: '75%' }]}>
+      <View style={[styles.stroke, !purchased && { display: 'none' }]} />
+      <TouchableOpacity
+        style={[styles.column, { width: '75%' }]}
+        onPress={() => handlePurchasedItem && handlePurchasedItem(id)}
+      >
         <Text>{name}</Text>
 
         <Text>
@@ -34,7 +39,7 @@ const ListItem: React.FC<props> = ({
           {currencyFormat(price)}/{unit}
         </Text>
         <Text>{currencyFormat(quantity * price)}</Text>
-      </View>
+      </TouchableOpacity>
 
       <View style={[styles.column, { width: '25%' }]}>
         <TouchableOpacity

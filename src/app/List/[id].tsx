@@ -5,8 +5,8 @@ import InputCustom from '@/components/InputCustom';
 import { List as ListContainer } from '@/components/List';
 import ListItem from '@/components/ListItem';
 import {
+  eUnitMeansure,
   ListItemProps,
-  tUnitMeansure,
   UnitMeansure,
 } from '@/components/ListItem/types';
 import { theme } from '@/theme';
@@ -19,6 +19,7 @@ import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   SafeAreaView,
   Text,
   TouchableOpacity,
@@ -28,19 +29,19 @@ import { Dropdown } from 'react-native-element-dropdown';
 import { styles } from './styles';
 
 interface iDropdown {
-  label: keyof tUnitMeansure;
-  value: tUnitMeansure;
+  label: keyof eUnitMeansure;
+  value: eUnitMeansure;
 }
 const List: React.FC = () => {
   const { id } = useLocalSearchParams();
-  const ItemListInitial = {
+  const ItemListInitial: ListItemProps = {
     id: 0,
     name: '',
     price: 0,
     purchased: false,
-    quantity: 0,
+    quantity: 1,
     total: 0,
-    unit: UnitMeansure[2].value,
+    unit: eUnitMeansure.KILO,
   };
 
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -72,10 +73,60 @@ const List: React.FC = () => {
     });
   };
 
-  const AddItem = () => {};
+  const AddItem = () => {
+    let id = ShoppingList.items.length + 1;
+
+    ShoppingList.items.map((item) => {
+      if (item.id === id) {
+        let newId = item.id + 1;
+
+        id = newId;
+      }
+    });
+
+    const newItem: ListItemProps = {
+      ...ItemList,
+      id: id,
+      purchased: false,
+      total: ItemList.price * ItemList.quantity,
+    };
+
+    if (!validateItem(newItem)) {
+      Alert.alert('', 'Por favor insira um nome para o item!', [
+        { text: 'OK' },
+      ]);
+      return;
+    }
+
+    setShoppingList(
+      (old) =>
+        (old = {
+          ...old,
+          items: [...old.items, newItem],
+          total: old.total + newItem.total,
+        })
+    );
+
+    setItemList(ItemListInitial);
+    CloseModalItem();
+  };
+
+  const saveItem = () => {
+    ItemList.id <= 0 ? AddItem() : saveEditedItem();
+    const totalPrice = ShoppingList.items.reduce((sum, listItems) => {
+      return sum + listItems.totalItem;
+    }, 0);
+
+    setShoppingList(
+      (old) =>
+        (old = {
+          ...old,
+          total: totalPrice,
+        })
+    );
+  };
 
   const OpenModalItem = () => {
-    setItemList(ItemListInitial);
     bottomSheetRef.current?.expand();
   };
 
@@ -87,6 +138,169 @@ const List: React.FC = () => {
   useEffect(() => {
     handleLists();
   }, []);
+
+  //- carrega itens e total da lista
+  // useEffect(() => {
+  //   if (lists !== []) {
+  //     lists.map((list) => {
+  //       if (list.id === idList) {
+  //         setListItems(list.listItems);
+  //         setTotalList(list.totalList);
+  //       }
+  //     });
+  //   }
+  // }, [lists]);
+
+  //- verifica o price
+  // useEffect(() => {
+  //   if (quantity) {
+  //     if (isEditItem === false) {
+  //       setPrice(0.0);
+  //     }
+  //   }
+  // }, [quantity, isEditItem]);
+
+  //- calcula total do item
+  // useEffect(() => {
+  //   if (price) {
+  //     let convertedPrice = dotToComma(price);
+  //     setTotalItem(convertedPrice * quantity);
+  //   } else {
+  //     setTotalItem(0);
+  //   }
+  // }, [price, quantity]);
+
+  const commaToDot = (value: string): number => {
+    if (value.trim() === '' || Number.isNaN(value)) {
+      value = '0,0';
+    }
+
+    let newPrice = value.replace(',', '.');
+    return parseFloat(newPrice);
+  };
+
+  const dotToComma = (value: number): string => {
+    if (value === 0 || Number.isNaN(value)) {
+      value = 0.0;
+    }
+    let newPrice = String(value).replace('.', ',');
+    return newPrice;
+  };
+
+  //- Calcula o total da lista
+  // useEffect(() => {
+  //   const totalPrice = ShoppingList.items.reduce((sum, listItems) => {
+  //     return sum + listItems.totalItem;
+  //   }, 0);
+  //   setShoppingList(
+  //     (old) =>
+  //       (old = {
+  //         ...old,
+  //         total: totalPrice,
+  //       })
+  //   );
+  // }, [ShoppingList]);
+
+  // //- deleta um item
+  // const deletItem = (id) => {
+  //   const newlist = listItems.filter((item) => item.id !== id);
+
+  //   setListItems(newlist);
+  // };
+
+  //- edita um item
+  // const editItem = (id) => {
+  //   const editableItem = listItems.map((item) => {
+  //     if (item.id === id) {
+  //       setIdItem(item.id);
+  //       setContent(item.content);
+  //       let convertesPrice = commaToDot(item.price);
+  //       setPrice(convertesPrice);
+  //       setQuantity(item.quantity);
+  //     }
+  //   });
+
+  //   setIsEditItem(true);
+  // };
+
+  //- verifica se item não esta com nome e quantidade vazio
+  const validateItem = (item: ListItemProps): boolean => {
+    let result: boolean = true;
+    if (item.name == '' || item.quantity <= 0) {
+      result = false;
+    }
+
+    return result;
+  };
+
+  //- marca se foi comprado
+  const onPurchased = (id: number) => {
+    const newList: ListItemProps[] = ShoppingList.items.map((item) => {
+      if (item.id === id) {
+        item.purchased = !item.purchased;
+      }
+      return item;
+    });
+
+    setShoppingList((old) => (old = { ...ShoppingList, items: newList }));
+  };
+
+  const saveEditedItem = () => {
+    const newList: ListItemProps[] = ShoppingList.items.map((item) => {
+      if (item.id === ItemList.id) {
+        item.name = ItemList.name;
+        item.price = ItemList.price;
+        item.quantity = ItemList.quantity;
+        item.unit = ItemList.unit;
+      }
+      return item;
+    });
+    setShoppingList((old) => (old = { ...ShoppingList, items: newList }));
+    CloseModalItem();
+  };
+
+  const editItem = (id: number) => {
+    ShoppingList.items.map((item) => {
+      if (item.id === id) {
+        setItemList(
+          (old) =>
+            (old = {
+              id: item.id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              purchased: item.purchased,
+              total: item.total,
+              unit: item.unit,
+            })
+        );
+      }
+    });
+    OpenModalItem();
+  };
+
+  //- Salva a lista completa
+  // const saveList = async (id) => {
+  //   let editedLists = lists.map((editedList) => {
+  //     if (editedList.id === id) {
+  //       editedList.title = title;
+  //       editedList.listItems = listItems;
+  //       editedList.totalList = totalList;
+  //     }
+  //     return editedList;
+  //   });
+
+  //   await setLists(editedLists);
+  //   await AsyncStorage.setItem('lists', JSON.stringify(lists));
+  //   Alert.alert('', 'Lista salva com sucesso!', [
+  //     { text: 'Continuar editando' },
+  //     {
+  //       text: 'Sair',
+  //       onPress: () => navigation.navigate('Main'),
+  //       style: 'cancel',
+  //     },
+  //   ]);
+  // };
 
   return (
     <>
@@ -150,7 +364,8 @@ const List: React.FC = () => {
             data={ShoppingList.items}
             ItemListComp={ListItem}
             deleteList={() => {}}
-            editList={() => {}}
+            handlePurchasedItem={onPurchased}
+            editList={editItem}
           />
         </SafeAreaView>
 
@@ -226,9 +441,11 @@ const List: React.FC = () => {
                 inputType='decimal-pad'
                 textValue={String(ItemList.price)}
                 onChange={(e) => {
-                  setItemList(
-                    (old) => (old = { ...ItemList, quantity: Number(e) })
-                  );
+                  if (Number(e).toFixed(2) !== 'NaN') {
+                    setItemList(
+                      (old) => (old = { ...ItemList, price: Number(e) })
+                    );
+                  }
                 }}
               />
             </View>
@@ -286,7 +503,7 @@ const List: React.FC = () => {
             labelColor={theme.colors.light}
             borderRadius={5}
             width={'103%'}
-            onPress={AddItem}
+            onPress={saveItem}
             icon={
               // loading ? (
               //   <ActivityIndicator color={theme.colors.light} />

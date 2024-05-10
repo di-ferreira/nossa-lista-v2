@@ -6,12 +6,14 @@ interface iItemProps<T> {
   item: T;
   handleListDelete: (id: number) => void;
   handleListEdit: (id: number) => void;
+  handlePurchasedItem?: (id: number) => void;
 }
 interface iListProps<T> {
   data: T[];
   ItemListComp: React.FC<iItemProps<T>>;
   editList: (id: number) => void;
   deleteList: (id: number) => void;
+  handlePurchasedItem?: (id: number) => void;
 }
 
 export const List = <T extends object>({
@@ -19,6 +21,7 @@ export const List = <T extends object>({
   ItemListComp,
   deleteList,
   editList,
+  handlePurchasedItem,
 }: iListProps<T>) => {
   return (
     <View style={styles.container}>
@@ -29,6 +32,7 @@ export const List = <T extends object>({
             item={item}
             handleListDelete={deleteList}
             handleListEdit={editList}
+            handlePurchasedItem={handlePurchasedItem}
           />
         )}
       />
