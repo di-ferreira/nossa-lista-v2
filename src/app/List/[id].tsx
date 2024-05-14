@@ -11,7 +11,7 @@ import {
 } from '@/components/ListItem/types';
 import { theme } from '@/theme';
 import { SHOPPING_LIST_KEY } from '@/utils/consts';
-import { currencyFormat } from '@/utils/format';
+import { formatPrice } from '@/utils/format';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import BottomSheet from '@gorhom/bottom-sheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -57,6 +57,8 @@ const List: React.FC = () => {
   );
   const [isLoading, setisLoading] = useState<boolean>(false);
   const [isFocusDropdown, setIsFocusDropdown] = useState<boolean>(false);
+  const [ItemQuantity, setItemQuantity] = useState<string>('');
+  const [ItemPrice, setItemPrice] = useState<string>('');
 
   const [ItemList, setItemList] = useState<ListItemProps>(ItemListInitial);
 
@@ -84,11 +86,17 @@ const List: React.FC = () => {
       }
     });
 
+    const price = commaToDot(ItemPrice);
+    const quantity = commaToDot(ItemQuantity);
+
     const newItem: ListItemProps = {
       ...ItemList,
       id: id,
+      quantity,
+      price,
+      unit: dropdownValue.value,
       purchased: false,
-      total: ItemList.price * ItemList.quantity,
+      total: price * quantity,
     };
 
     if (!validateItem(newItem)) {
@@ -97,25 +105,29 @@ const List: React.FC = () => {
       ]);
       return;
     }
-
     setShoppingList(
       (old) =>
         (old = {
           ...old,
+          total: ShoppingList.total + newItem.total,
           items: [...old.items, newItem],
-          total: old.total + newItem.total,
         })
     );
-
     setItemList(ItemListInitial);
     CloseModalItem();
   };
 
   const saveItem = () => {
-    ItemList.id <= 0 ? AddItem() : saveEditedItem();
-    const totalPrice = ShoppingList.items.reduce((sum, listItems) => {
-      return sum + listItems.totalItem;
-    }, 0);
+    if (ItemList.id <= 0) AddItem();
+    else saveEditedItem();
+
+    const totalPrice = ShoppingList.items.reduce(
+      (sum: number, listItems: ListItemProps) => {
+        return sum + listItems.total;
+      },
+      0
+    );
+    console.log('total - saveItem', totalPrice);
 
     setShoppingList(
       (old) =>
@@ -132,6 +144,8 @@ const List: React.FC = () => {
 
   const CloseModalItem = () => {
     setItemList(ItemListInitial);
+    setItemQuantity('');
+    setItemPrice('');
     bottomSheetRef.current?.close();
   };
 
@@ -187,7 +201,7 @@ const List: React.FC = () => {
     return newPrice;
   };
 
-  //- Calcula o total da lista
+  // - Calcula o total da lista
   // useEffect(() => {
   //   const totalPrice = ShoppingList.items.reduce((sum, listItems) => {
   //     return sum + listItems.totalItem;
@@ -201,27 +215,31 @@ const List: React.FC = () => {
   //   );
   // }, [ShoppingList]);
 
-  // //- deleta um item
-  // const deletItem = (id) => {
-  //   const newlist = listItems.filter((item) => item.id !== id);
+  //- deleta um item
+  const deletItem = (id: number) => {
+    const newlist = ShoppingList.items.filter((item) => item.id !== id);
 
-  //   setListItems(newlist);
-  // };
+    const totalPrice = ShoppingList.items.reduce(
+      (sum: number, listItems: ListItemProps) => {
+        if (listItems.id !== id) {
+          return sum + listItems.total;
+        } else {
+          return sum;
+        }
+      },
+      0
+    );
+    console.log('total', totalPrice);
 
-  //- edita um item
-  // const editItem = (id) => {
-  //   const editableItem = listItems.map((item) => {
-  //     if (item.id === id) {
-  //       setIdItem(item.id);
-  //       setContent(item.content);
-  //       let convertesPrice = commaToDot(item.price);
-  //       setPrice(convertesPrice);
-  //       setQuantity(item.quantity);
-  //     }
-  //   });
-
-  //   setIsEditItem(true);
-  // };
+    setShoppingList(
+      (old) =>
+        (old = {
+          ...old,
+          items: newlist,
+          total: totalPrice,
+        })
+    );
+  };
 
   //- verifica se item não esta com nome e quantidade vazio
   const validateItem = (item: ListItemProps): boolean => {
@@ -249,26 +267,32 @@ const List: React.FC = () => {
     const newList: ListItemProps[] = ShoppingList.items.map((item) => {
       if (item.id === ItemList.id) {
         item.name = ItemList.name;
-        item.price = ItemList.price;
-        item.quantity = ItemList.quantity;
+        item.quantity = commaToDot(ItemQuantity);
+        item.price = commaToDot(ItemPrice);
         item.unit = ItemList.unit;
+        item.total = item.quantity * item.price;
       }
       return item;
     });
+
     setShoppingList((old) => (old = { ...ShoppingList, items: newList }));
     CloseModalItem();
   };
 
   const editItem = (id: number) => {
-    ShoppingList.items.map((item) => {
+    ShoppingList.items.map((item: ListItemProps) => {
       if (item.id === id) {
+        const unitValue = UnitMeansure.find((u) => u.value === item.unit);
+        setItemQuantity(dotToComma(item.quantity));
+        setItemPrice(dotToComma(item.price));
+        // setDropdownValue(unitValue);
         setItemList(
           (old) =>
             (old = {
               id: item.id,
               name: item.name,
-              price: item.price,
               quantity: item.quantity,
+              price: item.price,
               purchased: item.purchased,
               total: item.total,
               unit: item.unit,
@@ -363,7 +387,7 @@ const List: React.FC = () => {
           <ListContainer
             data={ShoppingList.items}
             ItemListComp={ListItem}
-            deleteList={() => {}}
+            deleteList={deletItem}
             handlePurchasedItem={onPurchased}
             editList={editItem}
           />
@@ -373,7 +397,7 @@ const List: React.FC = () => {
           <Text style={styles.TextHeader}>Total:</Text>
 
           <Text style={styles.TextHeader}>
-            {currencyFormat(ShoppingList.total)}
+            {formatPrice(ShoppingList.total)}
           </Text>
         </View>
 
@@ -422,30 +446,25 @@ const List: React.FC = () => {
               <InputCustom
                 placeholder='Quantidade do Item'
                 inputType='numeric'
-                textValue={String(ItemList.quantity)}
-                onChange={(e) => {
-                  setItemList(
-                    (old) => (old = { ...ItemList, quantity: Number(e) })
-                  );
-                }}
+                textValue={ItemQuantity}
+                onChange={(e) => setItemQuantity(e)}
               />
             </View>
           </View>
           <View style={styles.containerItem}>
             <View style={styles.containerInput}>
               <View style={styles.labelInput}>
-                <Text style={styles.labelText}>Preço do Item</Text>
+                <Text style={styles.labelText}>Preço do Item(R$)</Text>
               </View>
               <InputCustom
                 placeholder='Preço do Item'
                 inputType='decimal-pad'
-                textValue={String(ItemList.price)}
-                onChange={(e) => {
-                  if (Number(e).toFixed(2) !== 'NaN') {
-                    setItemList(
-                      (old) => (old = { ...ItemList, price: Number(e) })
-                    );
-                  }
+                textValue={ItemPrice}
+                onChange={(e) => setItemPrice(e)}
+                onBlur={() => {
+                  setItemList(
+                    (old) => (old = { ...ItemList, price: Number(ItemPrice) })
+                  );
                 }}
               />
             </View>

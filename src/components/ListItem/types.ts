@@ -16,7 +16,7 @@ export const UnitMeansure: {
 }[] = Object.assign(
   [],
   Object.keys(eUnitMeansure).map((key) => ({
-    label: key as keyof tUnitMeansure,
+    label: key as keyof eUnitMeansure,
     value: eUnitMeansure[key as keyof tUnitMeansure],
   }))
 );

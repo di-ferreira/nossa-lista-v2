@@ -1,5 +1,12 @@
 import React from 'react';
-import { KeyboardTypeOptions, Text, TextInput, View } from 'react-native';
+import {
+  KeyboardTypeOptions,
+  NativeSyntheticEvent,
+  Text,
+  TextInput,
+  TextInputFocusEventData,
+  View,
+} from 'react-native';
 
 import { styles } from './styles';
 
@@ -9,6 +16,8 @@ interface InputCustomProps {
   textValue?: string;
   inputType?: KeyboardTypeOptions;
   onChange?: (text: string) => void;
+  onBlur?: (e: NativeSyntheticEvent<TextInputFocusEventData>) => void;
+  onFocus?: (e: NativeSyntheticEvent<TextInputFocusEventData>) => void;
 }
 
 const InputCustom: React.FC<InputCustomProps> = ({
@@ -16,6 +25,8 @@ const InputCustom: React.FC<InputCustomProps> = ({
   placeholder,
   textValue,
   onChange,
+  onBlur,
+  onFocus,
   inputType,
 }) => {
   return (
@@ -25,6 +36,8 @@ const InputCustom: React.FC<InputCustomProps> = ({
         value={textValue}
         placeholder={placeholder}
         onChangeText={onChange}
+        onBlur={onBlur}
+        onFocus={onFocus}
         keyboardType={inputType ? inputType : 'default'}
       />
     </View>

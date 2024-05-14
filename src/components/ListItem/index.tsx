@@ -1,5 +1,5 @@
 import { theme } from '@/theme';
-import { currencyFormat } from '@/utils/format';
+import { formatPrice } from '@/utils/format';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
@@ -36,9 +36,9 @@ const ListItem: React.FC<props> = ({
         </Text>
 
         <Text>
-          {currencyFormat(price)}/{unit}
+          {formatPrice(price)}/{unit}
         </Text>
-        <Text>{currencyFormat(quantity * price)}</Text>
+        <Text>{formatPrice(quantity * price)}</Text>
       </TouchableOpacity>
 
       <View style={[styles.column, { width: '25%' }]}>
