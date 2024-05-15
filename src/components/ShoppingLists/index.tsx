@@ -1,6 +1,6 @@
 import Icon from '@/components/Icon';
 import { theme } from '@/theme';
-import { currencyFormat } from '@/utils/format';
+import { formatPrice } from '@/utils/format';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
@@ -25,7 +25,7 @@ const ShoppingLists: React.FC<props> = ({
         onPress={() => handleListEdit(id)}
       >
         <Text style={styles.title}>{name}</Text>
-        <Text style={styles.price}> {currencyFormat(total)}</Text>
+        <Text style={styles.price}> {formatPrice(total)}</Text>
       </TouchableOpacity>
 
       <View style={styles.containerIcon}>

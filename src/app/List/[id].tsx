@@ -11,11 +11,11 @@ import {
 } from '@/components/ListItem/types';
 import { theme } from '@/theme';
 import { SHOPPING_LIST_KEY } from '@/utils/consts';
-import { formatPrice } from '@/utils/format';
+import { commaToDot, dotToComma, formatPrice } from '@/utils/format';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import BottomSheet from '@gorhom/bottom-sheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -52,6 +52,10 @@ const List: React.FC = () => {
     total: 0,
   });
 
+  const [StoredShoppingList, setStoredShoppingList] = useState<
+    ShoppingListsProps[]
+  >([]);
+
   const [dropdownValue, setDropdownValue] = useState<iDropdown>(
     UnitMeansure[2]
   );
@@ -71,6 +75,7 @@ const List: React.FC = () => {
             setShoppingList(list);
           }
         });
+        setStoredShoppingList(storedLists);
       }
     });
   };
@@ -184,23 +189,6 @@ const List: React.FC = () => {
   //   }
   // }, [price, quantity]);
 
-  const commaToDot = (value: string): number => {
-    if (value.trim() === '' || Number.isNaN(value)) {
-      value = '0,0';
-    }
-
-    let newPrice = value.replace(',', '.');
-    return parseFloat(newPrice);
-  };
-
-  const dotToComma = (value: number): string => {
-    if (value === 0 || Number.isNaN(value)) {
-      value = 0.0;
-    }
-    let newPrice = String(value).replace('.', ',');
-    return newPrice;
-  };
-
   // - Calcula o total da lista
   // useEffect(() => {
   //   const totalPrice = ShoppingList.items.reduce((sum, listItems) => {
@@ -304,27 +292,28 @@ const List: React.FC = () => {
   };
 
   //- Salva a lista completa
-  // const saveList = async (id) => {
-  //   let editedLists = lists.map((editedList) => {
-  //     if (editedList.id === id) {
-  //       editedList.title = title;
-  //       editedList.listItems = listItems;
-  //       editedList.totalList = totalList;
-  //     }
-  //     return editedList;
-  //   });
+  const saveList = async () => {
+    setisLoading(false);
+    let editedLists: ShoppingListsProps[] = StoredShoppingList.map(
+      (editedList: ShoppingListsProps) => {
+        if (editedList.id === ShoppingList.id) {
+          editedList = ShoppingList;
+        }
+        return editedList;
+      }
+    );
 
-  //   await setLists(editedLists);
-  //   await AsyncStorage.setItem('lists', JSON.stringify(lists));
-  //   Alert.alert('', 'Lista salva com sucesso!', [
-  //     { text: 'Continuar editando' },
-  //     {
-  //       text: 'Sair',
-  //       onPress: () => navigation.navigate('Main'),
-  //       style: 'cancel',
-  //     },
-  //   ]);
-  // };
+    setStoredShoppingList(editedLists);
+    await AsyncStorage.setItem(SHOPPING_LIST_KEY, JSON.stringify(editedLists));
+    Alert.alert('', 'Lista salva com sucesso!', [
+      { text: 'Continuar editando' },
+      {
+        text: 'Sair',
+        onPress: () => router.navigate('/'),
+        style: 'cancel',
+      },
+    ]);
+  };
 
   return (
     <>
@@ -406,7 +395,7 @@ const List: React.FC = () => {
             label='SALVAR LISTA'
             backgroundColor={theme.colors.blue}
             labelColor={theme.colors.light}
-            onPress={() => {}}
+            onPress={saveList}
             icon={
               isLoading ? (
                 <ActivityIndicator color={theme.colors.light} />

@@ -1,5 +1,5 @@
 import { theme } from '@/theme';
-import { formatPrice } from '@/utils/format';
+import { dotToComma, formatPrice } from '@/utils/format';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
@@ -31,7 +31,7 @@ const ListItem: React.FC<props> = ({
         <Text>{name}</Text>
 
         <Text>
-          {quantity}
+          {dotToComma(quantity)}
           {unit}
         </Text>
 
