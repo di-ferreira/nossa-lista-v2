@@ -77,7 +77,7 @@ const List: React.FC = () => {
     handleError();
   }, [errorMessage]);
 
-  const AddItem = () => {
+  const AddItem = async () => {
     const price = commaToDot(ItemPrice);
     const quantity = commaToDot(ItemQuantity);
 
@@ -95,20 +95,24 @@ const List: React.FC = () => {
       items: [...CurrentList.items, newItem],
     };
 
-    dispatch(EditList(newList));
+    await dispatch(EditList(newList));
 
     setItemList(ItemListInitial);
     CloseModalItem();
   };
 
   const saveEditedItem = async () => {
+    const newItem: ListItemProps = {
+      ...ItemList,
+      quantity: commaToDot(ItemQuantity),
+      price: commaToDot(ItemPrice),
+      total: commaToDot(ItemPrice) * commaToDot(ItemQuantity),
+      unit: dropdownValue.value,
+    };
+
     const newListItems: ListItemProps[] = CurrentList.items.map((item) => {
-      if (item.id === ItemList.id) {
-        item.name = ItemList.name;
-        item.quantity = commaToDot(ItemQuantity);
-        item.price = commaToDot(ItemPrice);
-        item.unit = ItemList.unit;
-        item.total = item.quantity * item.price;
+      if (item.id === newItem.id) {
+        item = newItem;
       }
       return item;
     });
