@@ -22,7 +22,7 @@ export const UnitMeansure: {
 );
 
 export type ListItemProps = {
-  id: number;
+  id: string;
   name: string;
   price: number;
   quantity: number;

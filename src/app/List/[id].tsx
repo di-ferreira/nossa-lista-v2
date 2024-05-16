@@ -9,13 +9,16 @@ import {
   ListItemProps,
   UnitMeansure,
 } from '@/components/ListItem/types';
+import {
+  EditList,
+  GetListByID,
+} from '@/features/shoppingList/ShoppingList.thunk';
+import { useAppDispatch, useAppSelector } from '@/hooks/useAppSelector';
 import { theme } from '@/theme';
-import { SHOPPING_LIST_KEY } from '@/utils/consts';
 import { commaToDot, dotToComma, formatPrice } from '@/utils/format';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import BottomSheet from '@gorhom/bottom-sheet';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -35,7 +38,7 @@ interface iDropdown {
 const List: React.FC = () => {
   const { id } = useLocalSearchParams();
   const ItemListInitial: ListItemProps = {
-    id: 0,
+    id: '',
     name: '',
     price: 0,
     purchased: false,
@@ -44,22 +47,16 @@ const List: React.FC = () => {
     unit: eUnitMeansure.KILO,
   };
 
-  const bottomSheetRef = useRef<BottomSheet>(null);
-  const [ShoppingList, setShoppingList] = useState<ShoppingListsProps>({
-    id: 0,
-    name: '',
-    items: [],
-    total: 0,
-  });
+  const dispatch = useAppDispatch();
+  const { isLoading, errorMessage, CurrentList } = useAppSelector(
+    (state) => state.shoppingList
+  );
 
-  const [StoredShoppingList, setStoredShoppingList] = useState<
-    ShoppingListsProps[]
-  >([]);
+  const bottomSheetRef = useRef<BottomSheet>(null);
 
   const [dropdownValue, setDropdownValue] = useState<iDropdown>(
     UnitMeansure[2]
   );
-  const [isLoading, setisLoading] = useState<boolean>(false);
   const [isFocusDropdown, setIsFocusDropdown] = useState<boolean>(false);
   const [ItemQuantity, setItemQuantity] = useState<string>('');
   const [ItemPrice, setItemPrice] = useState<string>('');
@@ -67,36 +64,25 @@ const List: React.FC = () => {
   const [ItemList, setItemList] = useState<ListItemProps>(ItemListInitial);
 
   const handleLists = () => {
-    AsyncStorage.getItem(SHOPPING_LIST_KEY).then((data) => {
-      if (data) {
-        const storedLists: ShoppingListsProps[] = JSON.parse(data);
-        storedLists.filter((list) => {
-          if (list.id === parseInt(String(id))) {
-            setShoppingList(list);
-          }
-        });
-        setStoredShoppingList(storedLists);
-      }
-    });
+    id && dispatch(GetListByID(id.toString()));
   };
 
+  const handleError = () => {
+    if (errorMessage !== '') {
+      Alert.alert('', errorMessage, [{ text: 'OK' }]);
+    }
+  };
+
+  useEffect(() => {
+    handleError();
+  }, [errorMessage]);
+
   const AddItem = () => {
-    let id = ShoppingList.items.length + 1;
-
-    ShoppingList.items.map((item) => {
-      if (item.id === id) {
-        let newId = item.id + 1;
-
-        id = newId;
-      }
-    });
-
     const price = commaToDot(ItemPrice);
     const quantity = commaToDot(ItemQuantity);
 
     const newItem: ListItemProps = {
       ...ItemList,
-      id: id,
       quantity,
       price,
       unit: dropdownValue.value,
@@ -104,43 +90,41 @@ const List: React.FC = () => {
       total: price * quantity,
     };
 
-    if (!validateItem(newItem)) {
-      Alert.alert('', 'Por favor insira um nome para o item!', [
-        { text: 'OK' },
-      ]);
-      return;
-    }
-    setShoppingList(
-      (old) =>
-        (old = {
-          ...old,
-          total: ShoppingList.total + newItem.total,
-          items: [...old.items, newItem],
-        })
-    );
+    const newList: ShoppingListsProps = {
+      ...CurrentList,
+      items: [...CurrentList.items, newItem],
+    };
+
+    dispatch(EditList(newList));
+
     setItemList(ItemListInitial);
     CloseModalItem();
   };
 
+  const saveEditedItem = async () => {
+    const newListItems: ListItemProps[] = CurrentList.items.map((item) => {
+      if (item.id === ItemList.id) {
+        item.name = ItemList.name;
+        item.quantity = commaToDot(ItemQuantity);
+        item.price = commaToDot(ItemPrice);
+        item.unit = ItemList.unit;
+        item.total = item.quantity * item.price;
+      }
+      return item;
+    });
+
+    const newList: ShoppingListsProps = {
+      ...CurrentList,
+      items: newListItems,
+    };
+
+    await dispatch(EditList(newList));
+    CloseModalItem();
+  };
+
   const saveItem = () => {
-    if (ItemList.id <= 0) AddItem();
+    if (ItemList.id.trim() === '') AddItem();
     else saveEditedItem();
-
-    const totalPrice = ShoppingList.items.reduce(
-      (sum: number, listItems: ListItemProps) => {
-        return sum + listItems.total;
-      },
-      0
-    );
-    console.log('total - saveItem', totalPrice);
-
-    setShoppingList(
-      (old) =>
-        (old = {
-          ...old,
-          total: totalPrice,
-        })
-    );
   };
 
   const OpenModalItem = () => {
@@ -158,117 +142,44 @@ const List: React.FC = () => {
     handleLists();
   }, []);
 
-  //- carrega itens e total da lista
-  // useEffect(() => {
-  //   if (lists !== []) {
-  //     lists.map((list) => {
-  //       if (list.id === idList) {
-  //         setListItems(list.listItems);
-  //         setTotalList(list.totalList);
-  //       }
-  //     });
-  //   }
-  // }, [lists]);
+  const deletItem = async (id: string) => {
+    const newListItems: ListItemProps[] = CurrentList.items.filter(
+      (item) => item.id !== id
+    );
 
-  //- verifica o price
-  // useEffect(() => {
-  //   if (quantity) {
-  //     if (isEditItem === false) {
-  //       setPrice(0.0);
-  //     }
-  //   }
-  // }, [quantity, isEditItem]);
+    const newList: ShoppingListsProps = {
+      ...CurrentList,
+      items: newListItems,
+    };
 
-  //- calcula total do item
-  // useEffect(() => {
-  //   if (price) {
-  //     let convertedPrice = dotToComma(price);
-  //     setTotalItem(convertedPrice * quantity);
-  //   } else {
-  //     setTotalItem(0);
-  //   }
-  // }, [price, quantity]);
+    await dispatch(EditList(newList));
+  };
 
-  // - Calcula o total da lista
-  // useEffect(() => {
-  //   const totalPrice = ShoppingList.items.reduce((sum, listItems) => {
-  //     return sum + listItems.totalItem;
-  //   }, 0);
-  //   setShoppingList(
-  //     (old) =>
-  //       (old = {
-  //         ...old,
-  //         total: totalPrice,
-  //       })
-  //   );
-  // }, [ShoppingList]);
+  const onPurchased = async (itemValue: ListItemProps) => {
+    const newItem: ListItemProps = {
+      ...itemValue,
+      purchased: !itemValue.purchased,
+    };
 
-  //- deleta um item
-  const deletItem = (id: number) => {
-    const newlist = ShoppingList.items.filter((item) => item.id !== id);
-
-    const totalPrice = ShoppingList.items.reduce(
-      (sum: number, listItems: ListItemProps) => {
-        if (listItems.id !== id) {
-          return sum + listItems.total;
-        } else {
-          return sum;
+    const newListItems: ListItemProps[] = CurrentList.items.map(
+      (item: ListItemProps) => {
+        if (item.id === newItem.id) {
+          item = newItem;
         }
-      },
-      0
-    );
-    console.log('total', totalPrice);
-
-    setShoppingList(
-      (old) =>
-        (old = {
-          ...old,
-          items: newlist,
-          total: totalPrice,
-        })
-    );
-  };
-
-  //- verifica se item não esta com nome e quantidade vazio
-  const validateItem = (item: ListItemProps): boolean => {
-    let result: boolean = true;
-    if (item.name == '' || item.quantity <= 0) {
-      result = false;
-    }
-
-    return result;
-  };
-
-  //- marca se foi comprado
-  const onPurchased = (id: number) => {
-    const newList: ListItemProps[] = ShoppingList.items.map((item) => {
-      if (item.id === id) {
-        item.purchased = !item.purchased;
+        return item;
       }
-      return item;
-    });
+    );
 
-    setShoppingList((old) => (old = { ...ShoppingList, items: newList }));
+    const newList: ShoppingListsProps = {
+      ...CurrentList,
+      items: newListItems,
+    };
+
+    await dispatch(EditList(newList));
   };
 
-  const saveEditedItem = () => {
-    const newList: ListItemProps[] = ShoppingList.items.map((item) => {
-      if (item.id === ItemList.id) {
-        item.name = ItemList.name;
-        item.quantity = commaToDot(ItemQuantity);
-        item.price = commaToDot(ItemPrice);
-        item.unit = ItemList.unit;
-        item.total = item.quantity * item.price;
-      }
-      return item;
-    });
-
-    setShoppingList((old) => (old = { ...ShoppingList, items: newList }));
-    CloseModalItem();
-  };
-
-  const editItem = (id: number) => {
-    ShoppingList.items.map((item: ListItemProps) => {
+  const editItem = (id: string) => {
+    CurrentList.items.map((item: ListItemProps) => {
       if (item.id === id) {
         const unitValue = UnitMeansure.find((u) => u.value === item.unit);
         setItemQuantity(dotToComma(item.quantity));
@@ -291,36 +202,12 @@ const List: React.FC = () => {
     OpenModalItem();
   };
 
-  //- Salva a lista completa
-  const saveList = async () => {
-    setisLoading(false);
-    let editedLists: ShoppingListsProps[] = StoredShoppingList.map(
-      (editedList: ShoppingListsProps) => {
-        if (editedList.id === ShoppingList.id) {
-          editedList = ShoppingList;
-        }
-        return editedList;
-      }
-    );
-
-    setStoredShoppingList(editedLists);
-    await AsyncStorage.setItem(SHOPPING_LIST_KEY, JSON.stringify(editedLists));
-    Alert.alert('', 'Lista salva com sucesso!', [
-      { text: 'Continuar editando' },
-      {
-        text: 'Sair',
-        onPress: () => router.navigate('/'),
-        style: 'cancel',
-      },
-    ]);
-  };
-
   return (
     <>
       <Header previous />
 
       <View style={styles.container}>
-        <Text style={styles.title}> {ShoppingList.name} </Text>
+        <Text style={styles.title}> {CurrentList.name} </Text>
 
         <View style={styles.headerTitle}>
           <View
@@ -374,7 +261,7 @@ const List: React.FC = () => {
           </TouchableOpacity>
 
           <ListContainer
-            data={ShoppingList.items}
+            data={CurrentList.items}
             ItemListComp={ListItem}
             deleteList={deletItem}
             handlePurchasedItem={onPurchased}
@@ -386,28 +273,8 @@ const List: React.FC = () => {
           <Text style={styles.TextHeader}>Total:</Text>
 
           <Text style={styles.TextHeader}>
-            {formatPrice(ShoppingList.total)}
+            {formatPrice(CurrentList.total)}
           </Text>
-        </View>
-
-        <View>
-          <Button
-            label='SALVAR LISTA'
-            backgroundColor={theme.colors.blue}
-            labelColor={theme.colors.light}
-            onPress={saveList}
-            icon={
-              isLoading ? (
-                <ActivityIndicator color={theme.colors.light} />
-              ) : (
-                <MaterialCommunityIcons
-                  name={'send'}
-                  size={30}
-                  color={theme.colors.light}
-                />
-              )
-            }
-          />
         </View>
       </View>
 
@@ -513,15 +380,15 @@ const List: React.FC = () => {
             width={'103%'}
             onPress={saveItem}
             icon={
-              // loading ? (
-              //   <ActivityIndicator color={theme.colors.light} />
-              // ) : (
-              <MaterialCommunityIcons
-                name={'send'}
-                size={30}
-                color={theme.colors.light}
-              />
-              // )
+              isLoading ? (
+                <ActivityIndicator color={theme.colors.light} />
+              ) : (
+                <MaterialCommunityIcons
+                  name={'send'}
+                  size={30}
+                  color={theme.colors.light}
+                />
+              )
             }
           />
         </View>

@@ -7,8 +7,8 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import { styles } from './styles';
 interface props {
   item: ShoppingListsProps;
-  handleListDelete: (id: number) => void;
-  handleListEdit: (id: number) => void;
+  handleListDelete: (id: string) => void;
+  handleListEdit: (id: string) => void;
 }
 
 const ShoppingLists: React.FC<props> = ({

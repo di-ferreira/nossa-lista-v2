@@ -8,9 +8,9 @@ import { ListItemProps } from './types';
 
 interface props {
   item: ListItemProps;
-  handleListDelete: (id: number) => void;
-  handleListEdit: (id: number) => void;
-  handlePurchasedItem?: (id: number) => void;
+  handleListDelete: (id: string) => void;
+  handleListEdit: (id: string) => void;
+  handlePurchasedItem?: (item: ListItemProps) => void;
 }
 
 const ListItem: React.FC<props> = ({
@@ -26,7 +26,7 @@ const ListItem: React.FC<props> = ({
       <View style={[styles.stroke, !purchased && { display: 'none' }]} />
       <TouchableOpacity
         style={[styles.column, { width: '75%' }]}
-        onPress={() => handlePurchasedItem && handlePurchasedItem(id)}
+        onPress={() => handlePurchasedItem && handlePurchasedItem(item)}
       >
         <Text>{name}</Text>
 

@@ -8,16 +8,16 @@ import {
 } from './ShoppingList.thunk';
 
 interface IShoppingList {
-  ListShopping: ShoppingListsProps[];
+  ListsShopping: ShoppingListsProps[];
   CurrentList: ShoppingListsProps;
   isLoading: boolean;
   errorMessage: string;
 }
 
 const initialState: IShoppingList = {
-  ListShopping: [],
+  ListsShopping: [],
   CurrentList: {
-    id: 0,
+    id: '',
     name: '',
     total: 0,
     items: [],
@@ -30,8 +30,8 @@ export const ShoppingListSlice = createSlice({
   name: 'ShoppingList',
   initialState,
   reducers: {
-    setListShopping: (state, action) => {
-      state.ListShopping = action.payload;
+    setListsShopping: (state, action) => {
+      state.ListsShopping = action.payload;
     },
     setCurrentList: (state, action) => {
       state.CurrentList = action.payload;
@@ -47,7 +47,7 @@ export const ShoppingListSlice = createSlice({
         NewList.fulfilled,
         (state, action: PayloadAction<ShoppingListsProps | undefined>) => {
           if (action.payload) {
-            state.ListShopping = [...state.ListShopping, action.payload];
+            state.ListsShopping = [...state.ListsShopping, action.payload];
             state.CurrentList = action.payload;
           }
           state.isLoading = false;
@@ -74,7 +74,7 @@ export const ShoppingListSlice = createSlice({
           >
         ) => {
           if (action.payload) {
-            state.ListShopping = action.payload.lists;
+            state.ListsShopping = action.payload.lists;
             state.CurrentList = action.payload.current;
           }
           state.isLoading = false;
@@ -95,7 +95,7 @@ export const ShoppingListSlice = createSlice({
         GetLists.fulfilled,
         (state, action: PayloadAction<ShoppingListsProps[] | undefined>) => {
           if (action.payload) {
-            state.ListShopping = action.payload;
+            state.ListsShopping = action.payload;
           }
           state.isLoading = false;
           state.errorMessage = '';
@@ -135,7 +135,7 @@ export const ShoppingListSlice = createSlice({
         DeleteList.fulfilled,
         (state, action: PayloadAction<ShoppingListsProps[] | undefined>) => {
           if (action.payload) {
-            state.ListShopping = action.payload;
+            state.ListsShopping = action.payload;
           }
           state.isLoading = false;
           state.errorMessage = '';
@@ -147,4 +147,8 @@ export const ShoppingListSlice = createSlice({
       });
   },
 });
+
+export const { setListsShopping, setCurrentList } = ShoppingListSlice.actions;
+
+export const shoppingListReducer = ShoppingListSlice.reducer;
 
