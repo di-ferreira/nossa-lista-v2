@@ -11,7 +11,7 @@ export enum eUnitMeansure {
 }
 
 export const UnitMeansure: {
-  label: keyof eUnitMeansure;
+  label: keyof tUnitMeansure;
   value: eUnitMeansure;
 }[] = Object.assign(
   [],

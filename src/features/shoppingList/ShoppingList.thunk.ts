@@ -70,7 +70,6 @@ export const EditList = createAsyncThunk(
         },
         { total: 0 }
       ).total;
-
       let errorList: string = '';
 
       let listState: ShoppingListsProps = {
@@ -109,7 +108,7 @@ export const EditList = createAsyncThunk(
         JSON.stringify(editedLists)
       );
 
-      return { lists: editedLists, current: list };
+      return { lists: editedLists, current: listState };
     } catch (error: unknown) {
       if (typeof error === 'string')
         return thunkAPI.rejectWithValue(`error: ${error}`);

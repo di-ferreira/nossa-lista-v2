@@ -7,6 +7,7 @@ import ListItem from '@/components/ListItem';
 import {
   eUnitMeansure,
   ListItemProps,
+  tUnitMeansure,
   UnitMeansure,
 } from '@/components/ListItem/types';
 import {
@@ -32,7 +33,7 @@ import { Dropdown } from 'react-native-element-dropdown';
 import { styles } from './styles';
 
 interface iDropdown {
-  label: keyof eUnitMeansure;
+  label: keyof tUnitMeansure;
   value: eUnitMeansure;
 }
 const List: React.FC = () => {
@@ -60,11 +61,12 @@ const List: React.FC = () => {
   const [isFocusDropdown, setIsFocusDropdown] = useState<boolean>(false);
   const [ItemQuantity, setItemQuantity] = useState<string>('');
   const [ItemPrice, setItemPrice] = useState<string>('');
+  const [TotalList, setTotalList] = useState<number>(0);
 
   const [ItemList, setItemList] = useState<ListItemProps>(ItemListInitial);
 
-  const handleLists = () => {
-    id && dispatch(GetListByID(id.toString()));
+  const handleLists = async () => {
+    id && (await dispatch(GetListByID(id.toString())));
   };
 
   const handleError = () => {
@@ -76,6 +78,11 @@ const List: React.FC = () => {
   useEffect(() => {
     handleError();
   }, [errorMessage]);
+
+  useEffect(() => {
+    setTotalList(CurrentList.total);
+    console.log('Current', CurrentList);
+  }, [CurrentList]);
 
   const AddItem = async () => {
     const price = commaToDot(ItemPrice);
@@ -129,6 +136,7 @@ const List: React.FC = () => {
   const saveItem = () => {
     if (ItemList.id.trim() === '') AddItem();
     else saveEditedItem();
+    handleLists();
   };
 
   const OpenModalItem = () => {
@@ -157,6 +165,7 @@ const List: React.FC = () => {
     };
 
     await dispatch(EditList(newList));
+    handleLists();
   };
 
   const onPurchased = async (itemValue: ListItemProps) => {
@@ -185,10 +194,12 @@ const List: React.FC = () => {
   const editItem = (id: string) => {
     CurrentList.items.map((item: ListItemProps) => {
       if (item.id === id) {
-        const unitValue = UnitMeansure.find((u) => u.value === item.unit);
+        const unitValue: iDropdown | undefined = UnitMeansure.find(
+          (u) => u.value === item.unit && u
+        );
         setItemQuantity(dotToComma(item.quantity));
         setItemPrice(dotToComma(item.price));
-        // setDropdownValue(unitValue);
+        if (unitValue) setDropdownValue(unitValue);
         setItemList(
           (old) =>
             (old = {
