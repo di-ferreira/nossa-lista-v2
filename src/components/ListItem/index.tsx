@@ -1,7 +1,7 @@
 import { theme } from '@/theme';
 import { dotToComma, formatPrice } from '@/utils/format';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
-import React from 'react';
+import React, { memo } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { styles } from './styles';
 import { ListItemProps } from './types';
@@ -20,7 +20,6 @@ const ListItem: React.FC<props> = ({
   handlePurchasedItem,
 }) => {
   const { id, name, price, purchased, quantity, unit } = item;
-
   return (
     <View style={styles.container}>
       <View style={[styles.stroke, !purchased && { display: 'none' }]} />
@@ -71,5 +70,5 @@ const ListItem: React.FC<props> = ({
   );
 };
 
-export default ListItem;
+export default memo(ListItem);
 

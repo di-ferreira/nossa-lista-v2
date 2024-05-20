@@ -14,10 +14,14 @@ export const commaToDot = (value: string): number => {
   return parseFloat(newPrice);
 };
 
-export const dotToComma = (value: number): string => {
+export const dotToComma = (value: number | string): string => {
+  if (typeof value === 'string') {
+    value = parseFloat(value);
+  }
   if (value === 0 || Number.isNaN(value)) {
     value = 0.0;
   }
   let newPrice = String(value).replace('.', ',');
   return newPrice;
 };
+

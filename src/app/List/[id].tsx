@@ -16,11 +16,11 @@ import {
 } from '@/features/shoppingList/ShoppingList.thunk';
 import { useAppDispatch, useAppSelector } from '@/hooks/useAppSelector';
 import { theme } from '@/theme';
-import { commaToDot, dotToComma, formatPrice } from '@/utils/format';
+import { commaToDot, formatPrice } from '@/utils/format';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -36,14 +36,25 @@ interface iDropdown {
   label: keyof tUnitMeansure;
   value: eUnitMeansure;
 }
+interface iItemValue {
+  id: string;
+  name: string;
+  quantity: string;
+  price: string;
+  purchased: boolean;
+  total: number;
+  unit: eUnitMeansure;
+}
+
 const List: React.FC = () => {
   const { id } = useLocalSearchParams();
-  const ItemListInitial: ListItemProps = {
-    id: '',
+
+  const ItemValueInitial: iItemValue = {
     name: '',
-    price: 0,
+    quantity: '',
+    price: '',
+    id: '',
     purchased: false,
-    quantity: 1,
     total: 0,
     unit: eUnitMeansure.KILO,
   };
@@ -59,11 +70,7 @@ const List: React.FC = () => {
     UnitMeansure[2]
   );
   const [isFocusDropdown, setIsFocusDropdown] = useState<boolean>(false);
-  const [ItemQuantity, setItemQuantity] = useState<string>('');
-  const [ItemPrice, setItemPrice] = useState<string>('');
-  const [TotalList, setTotalList] = useState<number>(0);
-
-  const [ItemList, setItemList] = useState<ListItemProps>(ItemListInitial);
+  const [ItemValue, setItemValue] = useState<iItemValue>(ItemValueInitial);
 
   const handleLists = async () => {
     id && (await dispatch(GetListByID(id.toString())));
@@ -79,21 +86,16 @@ const List: React.FC = () => {
     handleError();
   }, [errorMessage]);
 
-  useEffect(() => {
-    setTotalList(CurrentList.total);
-    console.log('Current', CurrentList);
-  }, [CurrentList]);
-
   const AddItem = async () => {
-    const price = commaToDot(ItemPrice);
-    const quantity = commaToDot(ItemQuantity);
+    const price = commaToDot(ItemValue.price);
+    const quantity = commaToDot(ItemValue.quantity);
 
     const newItem: ListItemProps = {
-      ...ItemList,
+      ...ItemValue,
+      name: ItemValue.name,
       quantity,
       price,
       unit: dropdownValue.value,
-      purchased: false,
       total: price * quantity,
     };
 
@@ -104,17 +106,22 @@ const List: React.FC = () => {
 
     await dispatch(EditList(newList));
 
-    setItemList(ItemListInitial);
+    setItemValue(ItemValueInitial);
     CloseModalItem();
   };
 
   const saveEditedItem = async () => {
+    let price = commaToDot(ItemValue.price);
+    let quantity = commaToDot(ItemValue.quantity);
+
     const newItem: ListItemProps = {
-      ...ItemList,
-      quantity: commaToDot(ItemQuantity),
-      price: commaToDot(ItemPrice),
-      total: commaToDot(ItemPrice) * commaToDot(ItemQuantity),
+      id: ItemValue.id,
+      name: ItemValue.name,
+      quantity: quantity,
+      price: price,
+      total: price * quantity,
       unit: dropdownValue.value,
+      purchased: ItemValue.purchased,
     };
 
     const newListItems: ListItemProps[] = CurrentList.items.map((item) => {
@@ -134,7 +141,7 @@ const List: React.FC = () => {
   };
 
   const saveItem = () => {
-    if (ItemList.id.trim() === '') AddItem();
+    if (ItemValue.id.trim() === '') AddItem();
     else saveEditedItem();
     handleLists();
   };
@@ -144,9 +151,12 @@ const List: React.FC = () => {
   };
 
   const CloseModalItem = () => {
-    setItemList(ItemListInitial);
-    setItemQuantity('');
-    setItemPrice('');
+    setItemValue(
+      (old) =>
+        (old = {
+          ...ItemValueInitial,
+        })
+    );
     bottomSheetRef.current?.close();
   };
 
@@ -154,42 +164,48 @@ const List: React.FC = () => {
     handleLists();
   }, []);
 
-  const deletItem = async (id: string) => {
-    const newListItems: ListItemProps[] = CurrentList.items.filter(
-      (item) => item.id !== id
-    );
+  const deletItem = useCallback(
+    async (id: string) => {
+      const newListItems: ListItemProps[] = CurrentList.items.filter(
+        (item) => item.id !== id
+      );
 
-    const newList: ShoppingListsProps = {
-      ...CurrentList,
-      items: newListItems,
-    };
+      const newList: ShoppingListsProps = {
+        ...CurrentList,
+        items: newListItems,
+      };
 
-    await dispatch(EditList(newList));
-    handleLists();
-  };
+      await dispatch(EditList(newList));
+      handleLists();
+    },
+    [CurrentList]
+  );
 
-  const onPurchased = async (itemValue: ListItemProps) => {
-    const newItem: ListItemProps = {
-      ...itemValue,
-      purchased: !itemValue.purchased,
-    };
+  const onPurchased = useCallback(
+    async (itemValue: ListItemProps) => {
+      const newItem: ListItemProps = {
+        ...itemValue,
+        purchased: !itemValue.purchased,
+      };
 
-    const newListItems: ListItemProps[] = CurrentList.items.map(
-      (item: ListItemProps) => {
-        if (item.id === newItem.id) {
-          item = newItem;
+      const newListItems: ListItemProps[] = CurrentList.items.map(
+        (item: ListItemProps) => {
+          if (item.id === newItem.id) {
+            item = newItem;
+          }
+          return item;
         }
-        return item;
-      }
-    );
+      );
 
-    const newList: ShoppingListsProps = {
-      ...CurrentList,
-      items: newListItems,
-    };
+      const newList: ShoppingListsProps = {
+        ...CurrentList,
+        items: newListItems,
+      };
 
-    await dispatch(EditList(newList));
-  };
+      await dispatch(EditList(newList));
+    },
+    [CurrentList]
+  );
 
   const editItem = (id: string) => {
     CurrentList.items.map((item: ListItemProps) => {
@@ -197,16 +213,16 @@ const List: React.FC = () => {
         const unitValue: iDropdown | undefined = UnitMeansure.find(
           (u) => u.value === item.unit && u
         );
-        setItemQuantity(dotToComma(item.quantity));
-        setItemPrice(dotToComma(item.price));
+
         if (unitValue) setDropdownValue(unitValue);
-        setItemList(
+
+        setItemValue(
           (old) =>
             (old = {
               id: item.id,
               name: item.name,
-              quantity: item.quantity,
-              price: item.price,
+              quantity: String(item.quantity),
+              price: String(item.price),
               purchased: item.purchased,
               total: item.total,
               unit: item.unit,
@@ -302,12 +318,12 @@ const List: React.FC = () => {
               </View>
               <InputCustom
                 placeholder='Nome do Item'
-                textValue={ItemList.name}
-                onChange={(e) => {
-                  setItemList(
-                    (old) => (old = { ...ItemList, name: String(e) })
-                  );
-                }}
+                textValue={ItemValue.name}
+                onChange={(e) =>
+                  setItemValue(
+                    (old) => (old = { ...ItemValue, name: String(e) })
+                  )
+                }
               />
             </View>
             <View style={styles.containerInput}>
@@ -317,8 +333,12 @@ const List: React.FC = () => {
               <InputCustom
                 placeholder='Quantidade do Item'
                 inputType='numeric'
-                textValue={ItemQuantity}
-                onChange={(e) => setItemQuantity(e)}
+                textValue={ItemValue.quantity}
+                onChange={(e) =>
+                  setItemValue(
+                    (old) => (old = { ...ItemValue, quantity: String(e) })
+                  )
+                }
               />
             </View>
           </View>
@@ -330,13 +350,12 @@ const List: React.FC = () => {
               <InputCustom
                 placeholder='Preço do Item'
                 inputType='decimal-pad'
-                textValue={ItemPrice}
-                onChange={(e) => setItemPrice(e)}
-                onBlur={() => {
-                  setItemList(
-                    (old) => (old = { ...ItemList, price: Number(ItemPrice) })
-                  );
-                }}
+                textValue={ItemValue.price}
+                onChange={(e) =>
+                  setItemValue(
+                    (old) => (old = { ...ItemValue, price: String(e) })
+                  )
+                }
               />
             </View>
 
@@ -393,7 +412,7 @@ const List: React.FC = () => {
             labelColor={theme.colors.light}
             borderRadius={5}
             width={'103%'}
-            onPress={saveItem}
+            onPress={() => saveItem()}
             icon={
               isLoading ? (
                 <ActivityIndicator color={theme.colors.light} />

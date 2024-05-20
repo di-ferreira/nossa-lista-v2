@@ -16,7 +16,7 @@ export const NewList = createAsyncThunk(
       let storedlists: ShoppingListsProps = {
         ...list,
         id: uuid.v4().toString(),
-        items: list.items.map((item) => {
+        items: list.items.map((item: ListItemProps) => {
           if (item.id.trim() === '') item.id = uuid.v4().toString();
           return item;
         }),
